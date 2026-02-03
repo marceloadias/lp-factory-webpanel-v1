@@ -1,0 +1,22 @@
+version: "1.0"
+
+domains:
+  - project_id: "proj_saude"
+    niche: "Saúde"
+    locale: "pt-br"
+    hub_elp:
+      domain: "saudecomprova.com.br"
+      canonical_trailing_slash: true
+    lp:
+      domain: "saudecomprova.com"
+      canonical_trailing_slash: true
+
+  - project_id: "proj_dinheiro"
+    niche: "Dinheiro"
+    locale: "pt-br"
+    hub_elp:
+      domain: "dinheiroepix.com.br"
+      canonical_trailing_slash: true
+    lp:
+      domain: "dinheiroepix.com"
+      canonical_trailing_slash: true

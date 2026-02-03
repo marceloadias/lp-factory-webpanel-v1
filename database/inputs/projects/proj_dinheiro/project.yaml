@@ -1,0 +1,31 @@
+contract_version: "1.0"
+
+project:
+  project_id: "proj_dinheiro"
+  niche: "Dinheiro"
+  language: "pt-br"
+  country: "BR"
+
+  domains:
+    hub_elp: "dinheiroepix.com.br"
+    lp: "dinheiroepix.com"
+
+  rules:
+    launch_gate_min_score: 60
+    gold_min_score: 90
+    elp_min_words: 1900
+    references_min: 8
+    tables_required_min: 1
+    tables_required_max: 3
+    trailing_slash_required: true
+
+agents:
+  enabled:
+    agent01_seo_pack: true
+    agent02_content_pack: true
+    agent03_generate_html: true
+    agent04_validate: true
+    agent05_assets_pack: true
+    agent06_orchestrator: true
+
+clusters: []
