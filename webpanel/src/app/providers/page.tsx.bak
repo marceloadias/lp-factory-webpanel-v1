@@ -1,0 +1,605 @@
+"use client"
+
+import * as React from "react"
+import {
+    ShieldCheck,
+    RefreshCw,
+    Plus,
+    Edit2,
+    Power,
+    Trash2,
+    ArrowUpDown,
+    Cpu,
+    Sparkles,
+    Settings2,
+    CheckCircle2,
+    AlertCircle,
+    UserCircle,
+    Save,
+    X,
+} from "lucide-react"
+import { Button } from "@/components/ui/button"
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
+import { Badge } from "@/components/ui/badge"
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { PremiumDataTable } from "@/components/datatable/PremiumDataTable"
+import { ColumnDef } from "@tanstack/react-table"
+import { Provider } from "@/lib/types/providers"
+import { Agent, AgentSuggestion } from "@/lib/types/agents"
+import { appStore } from "@/lib/store"
+import { StatusBadge } from "@/components/ui/status-badge"
+import { toast } from "sonner"
+import {
+    Sheet,
+    SheetContent,
+    SheetDescription,
+    SheetHeader,
+    SheetTitle,
+    SheetFooter,
+} from "@/components/ui/sheet"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
+import { Switch } from "@/components/ui/switch"
+import { Textarea } from "@/components/ui/textarea"
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from "@/components/ui/select"
+import { I18N } from "@/lib/i18n/pt-BR"
+
+export default function APIsAndAgentsPage() {
+    const [state, setState] = React.useState(appStore.getState())
+    const [isClient, setIsClient] = React.useState(false)
+
+    // Provider Form State
+    const [editingProvider, setEditingProvider] = React.useState<Provider | null>(null)
+    const [isProviderSheetOpen, setIsProviderSheetOpen] = React.useState(false)
+
+    // Agent Form State
+    const [editingAgent, setEditingAgent] = React.useState<Agent | null>(null)
+    const [isAgentSheetOpen, setIsAgentSheetOpen] = React.useState(false)
+    const [newSuggestion, setNewSuggestion] = React.useState("")
+
+    React.useEffect(() => {
+        setIsClient(true)
+        const unsub = appStore.subscribe(setState)
+        return () => { unsub(); }
+    }, [])
+
+    if (!isClient) return null
+
+    const handleToggleProvider = (providerId: string) => {
+        const nextProviders = state.providers.map(p =>
+            p.id === providerId ? { ...p, enabled: !p.enabled } : p
+        )
+        appStore.setState({ providers: nextProviders })
+        toast.success(`Provider ${state.providers.find(p => p.id === providerId)?.display_name} atualizado.`)
+    }
+
+    const handleSaveProvider = (e: React.FormEvent) => {
+        e.preventDefault()
+        if (!editingProvider) return
+
+        const exists = state.providers.find(p => p.id === editingProvider.id)
+        let nextProviders;
+
+        if (exists) {
+            nextProviders = state.providers.map(p => p.id === editingProvider.id ? editingProvider : p)
+        } else {
+            nextProviders = [...state.providers, editingProvider]
+        }
+
+        appStore.setState({ providers: nextProviders })
+        setIsProviderSheetOpen(false)
+        setEditingProvider(null)
+        toast.success("Configurações do Provider salvas com sucesso.")
+    }
+
+    const handleRemoveProvider = (providerId: string) => {
+        if (confirm("Deseja realmente remover este provider? Esta ação não pode ser desfeita.")) {
+            const nextProviders = state.providers.filter(p => p.id !== providerId)
+            appStore.setState({ providers: nextProviders })
+            toast.success("Provider removido.")
+        }
+    }
+
+    const handleSaveAgent = (e: React.FormEvent) => {
+        e.preventDefault()
+        if (!editingAgent) return
+
+        const nextAgents = state.agents.map(a => a.id === editingAgent.id ? editingAgent : a)
+        appStore.setState({ agents: nextAgents })
+        setIsAgentSheetOpen(false)
+        setEditingAgent(null)
+        toast.success("Configurações do Agente salvas.")
+    }
+
+    const handleSaveSuggestion = () => {
+        if (!newSuggestion.trim() || !editingAgent) return
+
+        const suggestion: AgentSuggestion = {
+            id: Math.random().toString(36).substr(2, 9),
+            agent_id: editingAgent.id,
+            text: newSuggestion,
+            created_at: new Date().toISOString(),
+            author: "Admin Local"
+        }
+
+        appStore.setState({
+            agentSuggestions: [suggestion, ...state.agentSuggestions]
+        })
+        setNewSuggestion("")
+        toast.success("Sugestão salva localmente.")
+    }
+
+    const handleRemoveSuggestion = (id: string) => {
+        appStore.setState({
+            agentSuggestions: state.agentSuggestions.filter(s => s.id !== id)
+        })
+    }
+
+    const providerColumns: ColumnDef<Provider>[] = [
+        {
+            accessorKey: "display_name",
+            header: I18N.COMMON.NAME,
+            cell: ({ row }) => (
+                <div className="flex items-center gap-2">
+                    <div className="h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center">
+                        <Cpu className="h-4 w-4 text-primary" />
+                    </div>
+                    <span className="font-bold text-sm tracking-tight">{row.original.display_name}</span>
+                </div>
+            )
+        },
+        {
+            accessorKey: "enabled",
+            header: I18N.COMMON.STATUS,
+            cell: ({ row }) => (
+                <StatusBadge status={row.original.enabled ? "success" : "neutral"}>
+                    {row.original.enabled ? "Ativo" : "Inativo"}
+                </StatusBadge>
+            )
+        },
+        {
+            id: "health",
+            header: "Saúde",
+            cell: () => (
+                <div className="flex items-center gap-1.5">
+                    <div className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                    <span className="text-[10px] font-black uppercase text-emerald-500">OK</span>
+                </div>
+            )
+        },
+        {
+            accessorKey: "default_model",
+            header: "Modelo Padrão",
+            cell: ({ row }) => (
+                <Badge variant="outline" className="text-[10px] font-mono border-none bg-muted/50 px-2">
+                    {row.original.default_model || "Não definido"}
+                </Badge>
+            )
+        },
+        {
+            id: "actions",
+            header: () => <div className="text-center">{I18N.COMMON.ACTIONS}</div>,
+            cell: ({ row }) => (
+                <div className="flex items-center justify-center gap-1">
+                    <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-8 w-8 rounded-full"
+                        onClick={() => {
+                            setEditingProvider(row.original)
+                            setIsProviderSheetOpen(true)
+                        }}
+                    >
+                        <Edit2 className="h-3.5 w-3.5" />
+                    </Button>
+                    <Button
+                        variant="ghost"
+                        size="icon"
+                        className={cn("h-8 w-8 rounded-full", row.original.enabled ? "text-rose-500" : "text-emerald-500")}
+                        onClick={() => handleToggleProvider(row.original.id)}
+                    >
+                        <Power className="h-3.5 w-3.5" />
+                    </Button>
+                    <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-8 w-8 rounded-full text-zinc-400 hover:text-rose-500"
+                        onClick={() => handleRemoveProvider(row.original.id)}
+                    >
+                        <Trash2 className="h-3.5 w-3.5" />
+                    </Button>
+                </div>
+            )
+        }
+    ]
+
+    return (
+        <div className="space-y-6 max-w-full overflow-hidden">
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                <div>
+                    <h1 className="text-3xl font-black tracking-tighter uppercase text-foreground">{I18N.COMMON.API_AGENTS}</h1>
+                    <p className="text-muted-foreground mt-1 text-sm font-medium">Configure as integrações de LLM e o comportamento dos Agentes Especialistas.</p>
+                </div>
+                <div className="flex items-center gap-2">
+                    <Badge variant="outline" className="bg-primary/5 text-primary border-primary/20 text-[10px] font-black uppercase px-3 py-1">
+                        Armazenamento Local Ativo
+                    </Badge>
+                </div>
+            </div>
+
+            <Tabs defaultValue="apis" className="w-full">
+                <TabsList className="bg-muted/50 p-1 h-12 rounded-2xl gap-2">
+                    <TabsTrigger value="apis" className="rounded-xl px-8 h-10 data-[state=active]:bg-primary data-[state=active]:text-white font-black text-[10px] uppercase tracking-widest transition-all">
+                        <Cpu className="mr-2 h-4 w-4" />
+                        APIs (Providers)
+                    </TabsTrigger>
+                    <TabsTrigger value="agents" className="rounded-xl px-8 h-10 data-[state=active]:bg-primary data-[state=active]:text-white font-black text-[10px] uppercase tracking-widest transition-all">
+                        <Sparkles className="mr-2 h-4 w-4" />
+                        {I18N.COMMON.TASKS}
+                    </TabsTrigger>
+                </TabsList>
+
+                {/* ABA APIS */}
+                <TabsContent value="apis" className="mt-6 space-y-6">
+                    <Card className={cn(
+                        "border-none shadow-large backdrop-blur-md overflow-hidden rounded-xl transition-all duration-300",
+                        "bg-[#F4F7F9]/95", // Light
+                        "dark:bg-[#080909]/80 dark:backdrop-blur-md" // Dark
+                    )}>
+                        <CardHeader className="flex flex-row items-center justify-between border-b border-border/10 pb-6">
+                            <div className="space-y-1">
+                                <CardTitle className="text-lg font-black uppercase tracking-tight">Providers Cadastrados</CardTitle>
+                                <CardDescription>Gerencie suas chaves de API e modelos disponíveis para o Engine.</CardDescription>
+                            </div>
+                            <Button
+                                onClick={() => {
+                                    setEditingProvider({ id: "", display_name: "", enabled: true, models: [] })
+                                    setIsProviderSheetOpen(true)
+                                }}
+                                className="h-10 rounded-full px-6 bg-primary text-white font-black text-[10px] uppercase tracking-widest shadow-lg shadow-primary/20"
+                            >
+                                <Plus className="mr-2 h-4 w-4" />
+                                {I18N.COMMON.ENABLE} Provider
+                            </Button>
+                        </CardHeader>
+                        <CardContent className="pt-6">
+                            <PremiumDataTable
+                                title="Lista de APIs"
+                                data={state.providers}
+                                columns={providerColumns}
+                                searchColumn="display_name"
+                                enableDateRange={false}
+                                enableFilters={false}
+                            />
+
+                            <div className="mt-8 p-4 rounded-2xl bg-primary/5 border border-primary/10 flex gap-4 items-start">
+                                <ShieldCheck className="h-5 w-5 text-primary shrink-0 mt-0.5" />
+                                <div className="space-y-1">
+                                    <p className="text-sm font-bold text-primary tracking-tight">Privacidade e Segurança</p>
+                                    <p className="text-xs text-muted-foreground leading-relaxed">
+                                        Nesta fase, todas as suas chaves de API são armazenadas exclusivamente no **localStorage** do seu navegador. Elas nunca deixam este dispositivo até que a integração com o Vault Centralizado seja ativada na Fase 4.
+                                    </p>
+                                </div>
+                            </div>
+                        </CardContent>
+                    </Card>
+                </TabsContent>
+
+                {/* ABA AGENTES */}
+                <TabsContent value="agents" className="mt-6">
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                        {state.agents.map((agent) => (
+                            <Card key={agent.id} className={cn(
+                                "group border shadow-large transition-all duration-300 rounded-xl overflow-hidden",
+                                "bg-[#F4F7F9]/95 border-slate-200/50 dark:bg-[#080909]/80 dark:border-white/10 dark:backdrop-blur-md",
+                                !agent.enabled && "opacity-60 grayscale-[0.3]"
+                            )}>
+                                <CardHeader className="pb-2">
+                                    <div className="flex justify-between items-start">
+                                        <Badge variant="outline" className="text-[10px] font-black uppercase bg-primary/5 text-primary border-primary/10 px-2">
+                                            {I18N.COMMON.TASKS.slice(0, -1)} {agent.id}
+                                        </Badge>
+                                        <Switch
+                                            checked={agent.enabled}
+                                            onCheckedChange={() => {
+                                                const nextAgents = state.agents.map(a => a.id === agent.id ? { ...a, enabled: !a.enabled } : a)
+                                                appStore.setState({ agents: nextAgents })
+                                            }}
+                                        />
+                                    </div>
+                                    <CardTitle className="text-xl mt-3 font-black tracking-tighter uppercase leading-none group-hover:text-primary transition-colors">
+                                        {agent.name}
+                                    </CardTitle>
+                                    <CardDescription className="line-clamp-2 text-xs font-medium leading-relaxed mt-2 min-h-[2.5rem]">
+                                        {agent.description}
+                                    </CardDescription>
+                                </CardHeader>
+                                <CardContent>
+                                    <div className="space-y-3 mt-2">
+                                        <div className="p-3 rounded-2xl bg-muted/40 border border-border/5 space-y-1">
+                                            <p className="text-[10px] font-black uppercase text-muted-foreground opacity-60">Modelo Preferido</p>
+                                            <div className="flex items-center gap-2">
+                                                <div className="h-4 w-4 rounded-full bg-primary/20 flex items-center justify-center">
+                                                    <div className="h-1.5 w-1.5 rounded-full bg-primary" />
+                                                </div>
+                                                <span className="text-xs font-bold tracking-tight">
+                                                    {agent.provider_binding
+                                                        ? `${agent.provider_binding.provider_id.toUpperCase()} - ${agent.provider_binding.model_id}`
+                                                        : "Auto-seleção Engine"}
+                                                </span>
+                                            </div>
+                                        </div>
+
+                                        <Button
+                                            onClick={() => {
+                                                setEditingAgent(agent)
+                                                setIsAgentSheetOpen(true)
+                                            }}
+                                            variant="secondary"
+                                            className="w-full rounded-full h-10 font-black text-[10px] uppercase tracking-widest bg-primary/5 hover:bg-primary text-primary hover:text-white border border-primary/10 transition-all"
+                                        >
+                                            <Settings2 className="mr-2 h-3.5 w-3.5" />
+                                            {I18N.COMMON.CONFIGURING} {I18N.COMMON.TASKS.slice(0, -1)}
+                                        </Button>
+                                    </div>
+                                </CardContent>
+                            </Card>
+                        ))}
+                    </div>
+                </TabsContent>
+            </Tabs>
+
+            {/* DRAWER PROVIDER */}
+            <Sheet open={isProviderSheetOpen} onOpenChange={setIsProviderSheetOpen}>
+                <SheetContent className="sm:max-w-xl rounded-l-xl border-none shadow-2xl bg-background/95 backdrop-blur-xl">
+                    <form onSubmit={handleSaveProvider} className="h-full flex flex-col">
+                        <SheetHeader className="pb-6">
+                            <SheetTitle className="text-2xl font-black uppercase tracking-tighter">{I18N.COMMON.CONFIGURING} Provider</SheetTitle>
+                            <SheetDescription>Configure as credenciais e modelos para este motor de IA.</SheetDescription>
+                        </SheetHeader>
+
+                        <div className="flex-1 space-y-6 overflow-y-auto pr-2">
+                            <div className="grid grid-cols-2 gap-4">
+                                <div className="space-y-2">
+                                    <Label className="text-[10px] font-black uppercase tracking-widest opacity-60">ID do Provider</Label>
+                                    <Input
+                                        placeholder="ex: openai"
+                                        value={editingProvider?.id || ""}
+                                        onChange={e => setEditingProvider(p => p ? { ...p, id: e.target.value } : null)}
+                                        className="h-10 rounded-xl"
+                                        required
+                                    />
+                                </div>
+                                <div className="space-y-2">
+                                    <Label className="text-[10px] font-black uppercase tracking-widest opacity-60">Nome de Exibição</Label>
+                                    <Input
+                                        placeholder="ex: OpenAI"
+                                        value={editingProvider?.display_name || ""}
+                                        onChange={e => setEditingProvider(p => p ? { ...p, display_name: e.target.value } : null)}
+                                        className="h-10 rounded-xl"
+                                        required
+                                    />
+                                </div>
+                            </div>
+
+                            <div className="space-y-2">
+                                <Label className="text-[10px] font-black uppercase tracking-widest opacity-60">Base URL (Opcional)</Label>
+                                <Input
+                                    placeholder="https://api.openai.com/v1"
+                                    value={editingProvider?.base_url || ""}
+                                    onChange={e => setEditingProvider(p => p ? { ...p, base_url: e.target.value } : null)}
+                                    className="h-10 rounded-xl"
+                                />
+                            </div>
+
+                            <div className="space-y-2">
+                                <Label className="text-[10px] font-black uppercase tracking-widest opacity-60">API Key</Label>
+                                <Input
+                                    type="password"
+                                    placeholder="sk-..."
+                                    value={editingProvider?.api_key || ""}
+                                    onChange={e => setEditingProvider(p => p ? { ...p, api_key: e.target.value } : null)}
+                                    className="h-10 rounded-xl font-mono"
+                                />
+                            </div>
+
+                            <div className="grid grid-cols-2 gap-4">
+                                <div className="space-y-2">
+                                    <Label className="text-[10px] font-black uppercase tracking-widest opacity-60">Modelo Padrão</Label>
+                                    <Input
+                                        placeholder="ex: gpt-4o"
+                                        value={editingProvider?.default_model || ""}
+                                        onChange={e => setEditingProvider(p => p ? { ...p, default_model: e.target.value } : null)}
+                                        className="h-10 rounded-xl"
+                                    />
+                                </div>
+                                <div className="flex items-center justify-between p-3 rounded-xl bg-muted/30 border border-border/5 self-end h-10">
+                                    <Label className="text-[10px] font-black uppercase tracking-widest opacity-60">Estado Habilitado</Label>
+                                    <Switch
+                                        checked={editingProvider?.enabled}
+                                        onCheckedChange={v => setEditingProvider(p => p ? { ...p, enabled: v } : null)}
+                                    />
+                                </div>
+                            </div>
+
+                            <div className="space-y-2">
+                                <Label className="text-[10px] font-black uppercase tracking-widest opacity-60">Notas Internas</Label>
+                                <Textarea
+                                    placeholder="Observações sobre faturamento, cotas ou uso específico..."
+                                    value={editingProvider?.notes || ""}
+                                    onChange={e => setEditingProvider(p => p ? { ...p, notes: e.target.value } : null)}
+                                    className="min-h-[100px] rounded-xl resize-none"
+                                />
+                            </div>
+                        </div>
+
+                        <SheetFooter className="mt-6 pt-6 border-t border-border/10">
+                            <Button type="button" variant="ghost" onClick={() => setIsProviderSheetOpen(false)} className="rounded-full h-11 px-6 font-black text-[10px] uppercase tracking-widest">
+                                {I18N.COMMON.CANCEL}
+                            </Button>
+                            <Button type="submit" className="rounded-full h-11 px-8 bg-primary text-white font-black text-[10px] uppercase tracking-widest shadow-lg shadow-primary/20">
+                                <Save className="mr-2 h-4 w-4" />
+                                {I18N.COMMON.SAVE} Provider
+                            </Button>
+                        </SheetFooter>
+                    </form>
+                </SheetContent>
+            </Sheet>
+
+            {/* DRAWER AGENT */}
+            <Sheet open={isAgentSheetOpen} onOpenChange={setIsAgentSheetOpen}>
+                <SheetContent className="sm:max-w-2xl rounded-l-xl border-none shadow-2xl bg-background/95 backdrop-blur-xl">
+                    <div className="h-full flex flex-col">
+                        <SheetHeader className="pb-6">
+                            <SheetTitle className="text-2xl font-black uppercase tracking-tighter flex items-center gap-3">
+                                <div className="h-10 w-10 rounded-2xl bg-primary/10 flex items-center justify-center">
+                                    <Sparkles className="h-6 w-6 text-primary" />
+                                </div>
+                                Agente {editingAgent?.id}
+                            </SheetTitle>
+                            <SheetDescription>{editingAgent?.name}</SheetDescription>
+                        </SheetHeader>
+
+                        <div className="flex-1 space-y-8 overflow-y-auto pr-2">
+                            {/* CONFIGURAÇÕES BÁSICAS */}
+                            <div className="space-y-4">
+                                <h4 className="text-[10px] font-black uppercase tracking-widest text-primary">Configurações Base</h4>
+
+                                <div className="grid grid-cols-2 gap-4">
+                                    <div className="space-y-2">
+                                        <Label className="text-[10px] font-black uppercase tracking-widest opacity-60">Vínculo de Modelo</Label>
+                                        <Select
+                                            value={editingAgent?.provider_binding?.provider_id}
+                                            onValueChange={(v) => {
+                                                const provider = state.providers.find(p => p.id === v)
+                                                setEditingAgent(a => a ? {
+                                                    ...a,
+                                                    provider_binding: {
+                                                        provider_id: v,
+                                                        model_id: provider?.default_model || ""
+                                                    }
+                                                } : null)
+                                            }}
+                                        >
+                                            <SelectTrigger className="h-11 rounded-xl">
+                                                <SelectValue placeholder="Selecione um Provider" />
+                                            </SelectTrigger>
+                                            <SelectContent className="rounded-xl border-none shadow-2xl">
+                                                {state.providers.map(p => (
+                                                    <SelectItem key={p.id} value={p.id} className="text-xs font-bold uppercase tracking-tight rounded-lg">
+                                                        {p.display_name}
+                                                    </SelectItem>
+                                                ))}
+                                            </SelectContent>
+                                        </Select>
+                                    </div>
+
+                                    <div className="space-y-2">
+                                        <Label className="text-[10px] font-black uppercase tracking-widest opacity-60">Modelo Específico</Label>
+                                        <Input
+                                            value={editingAgent?.provider_binding?.model_id || ""}
+                                            onChange={e => setEditingAgent(a => a ? {
+                                                ...a,
+                                                provider_binding: {
+                                                    provider_id: a.provider_binding?.provider_id || "",
+                                                    model_id: e.target.value
+                                                }
+                                            } : null)}
+                                            className="h-11 rounded-xl"
+                                        />
+                                    </div>
+                                </div>
+                            </div>
+
+                            {/* AUDITORIA / SUGESTÕES */}
+                            <div className="space-y-4">
+                                <div className="flex items-center justify-between">
+                                    <h4 className="text-[10px] font-black uppercase tracking-widest text-primary">Sugestões Auditáveis (Locais)</h4>
+                                    <Badge variant="outline" className="text-[8px] font-black uppercase opacity-50">Persistência Local-Only</Badge>
+                                </div>
+
+                                <div className="p-4 rounded-xl bg-muted/40 border border-border/5 space-y-4">
+                                    <div className="space-y-2">
+                                        <Label className="text-[10px] font-black uppercase tracking-widest opacity-60">Nova Sugestão de Melhoria</Label>
+                                        <Textarea
+                                            placeholder="Ex: Utilizar temperatura 0.3 para garantir maior precisão no código gerado pelo Agente 05."
+                                            value={newSuggestion}
+                                            onChange={e => setNewSuggestion(e.target.value)}
+                                            className="min-h-[80px] rounded-xl bg-background/50 border-none resize-none text-xs font-medium"
+                                        />
+                                    </div>
+                                    <Button
+                                        onClick={handleSaveSuggestion}
+                                        disabled={!newSuggestion.trim()}
+                                        className="w-full h-10 rounded-full font-black text-[10px] uppercase tracking-widest bg-primary text-white shadow-lg shadow-primary/20"
+                                    >
+                                        <Save className="mr-2 h-4 w-4" />
+                                        Salvar Sugestão
+                                    </Button>
+                                </div>
+
+                                <div className="space-y-3">
+                                    {state.agentSuggestions
+                                        .filter(s => s.agent_id === editingAgent?.id)
+                                        .map(suggestion => (
+                                            <div key={suggestion.id} className="p-4 rounded-2xl bg-card border border-border/5 space-y-2 relative group">
+                                                <div className="flex items-center justify-between">
+                                                    <div className="flex items-center gap-2">
+                                                        <UserCircle className="h-4 w-4 text-primary" />
+                                                        <span className="text-[10px] font-black uppercase tracking-tight">{suggestion.author}</span>
+                                                    </div>
+                                                    <span className="text-[9px] font-bold text-muted-foreground">
+                                                        {new Date(suggestion.created_at).toLocaleDateString()} {new Date(suggestion.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                                                    </span>
+                                                </div>
+                                                <p className="text-xs font-medium text-foreground/80 leading-relaxed italic">
+                                                    "{suggestion.text}"
+                                                </p>
+                                                <Button
+                                                    size="icon"
+                                                    variant="ghost"
+                                                    onClick={() => handleRemoveSuggestion(suggestion.id)}
+                                                    className="absolute -top-1 -right-1 h-6 w-6 rounded-full opacity-0 group-hover:opacity-100 bg-rose-500 text-white hover:bg-rose-600 transition-all scale-75 group-hover:scale-100"
+                                                >
+                                                    <Trash2 className="h-3 w-3" />
+                                                </Button>
+                                            </div>
+                                        ))}
+
+                                    {state.agentSuggestions.filter(s => s.agent_id === editingAgent?.id).length === 0 && (
+                                        <div className="py-8 text-center space-y-2 opacity-30">
+                                            <AlertCircle className="h-8 w-8 mx-auto" />
+                                            <p className="text-[10px] font-black uppercase tracking-widest">Nenhuma sugestão registrada</p>
+                                        </div>
+                                    )}
+                                </div>
+                            </div>
+                        </div>
+
+                        <SheetFooter className="mt-8 pt-8 border-t border-border/10">
+                            <Button type="button" variant="ghost" onClick={() => setIsAgentSheetOpen(false)} className="rounded-full h-12 px-6 font-black text-[10px] uppercase tracking-widest">
+                                {I18N.COMMON.CLOSE}
+                            </Button>
+                            <Button
+                                onClick={handleSaveAgent}
+                                className="rounded-full h-12 px-10 bg-primary text-white font-black text-[10px] uppercase tracking-widest shadow-lg shadow-primary/20"
+                            >
+                                <CheckCircle2 className="mr-2 h-4 w-4" />
+                                {I18N.COMMON.SAVE} {I18N.COMMON.SETTINGS}
+                            </Button>
+                        </SheetFooter>
+                    </div>
+                </SheetContent>
+            </Sheet>
+        </div>
+    )
+}
+
+import { cn } from "@/lib/utils"
+

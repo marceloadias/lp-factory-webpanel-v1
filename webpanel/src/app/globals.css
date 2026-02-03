@@ -1,0 +1,401 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --app-bg: 214 31% 90%;
+    /* #DDE4ED */
+    --dock-bg: 222 47% 11%;
+    /* #0F1729 */
+    --dock-tooltip-bg: 0 0% 100%;
+    /* #ffffff */
+    --dock-tooltip-foreground: 222 47% 11%;
+    /* #0F1729 */
+    --dock-popover-bg: 0 0% 100%;
+    /* #ffffff */
+    --dock-popover-foreground: 222 47% 11%;
+    /* #0F1729 */
+    --surface: 0 0% 100%;
+    /* #FFFFFF */
+    --surface-foreground: 222 47% 11%;
+    --surface-muted: 215 25% 35%;
+    --surface-border: 220 13% 91%;
+    --surface-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1);
+
+    --background: var(--app-bg);
+    --foreground: var(--surface-foreground);
+    --title: var(--surface-foreground);
+
+    --card: var(--surface);
+    --card-foreground: var(--surface-foreground);
+
+    --popover: var(--surface);
+    --popover-foreground: var(--surface-foreground);
+
+    --primary: 219 100% 50%;
+    --primary-foreground: 210 40% 98%;
+
+    --secondary: 210 40% 96.1%;
+    --secondary-foreground: var(--surface-foreground);
+
+    --muted: 213 32% 94%;
+    --muted-foreground: var(--surface-muted);
+
+    --accent: 210 40% 96.1%;
+    --accent-foreground: var(--surface-foreground);
+
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 210 40% 98%;
+
+    --border: var(--surface-border);
+    --input: var(--surface-border);
+    --ring: 219 100% 50%;
+    --header: var(--surface);
+
+    --line: var(--surface-border);
+
+    --radius: 1rem;
+  }
+
+  .dark {
+    /* Base: #0F1414 with very subtle gradient handled via background-image if needed, 
+       but for token we use the hex. */
+    --app-bg: 180 14% 6%;
+    /* #0F1414 (H:180, S:14%, L:6%) */
+    --dock-bg: 0 0% 100%;
+    /* #FFFFFF */
+    --dock-tooltip-bg: 219 100% 50%;
+    /* #0059FF */
+    --dock-tooltip-foreground: 0 0% 100%;
+    /* #FFFFFF */
+    --dock-popover-bg: 219 100% 50%;
+    /* #0059FF */
+    --dock-popover-foreground: 0 0% 100%;
+    /* #FFFFFF */
+
+    /* Card/Blocks Glass Style */
+    --surface: 0 0% 100% / 0.06;
+    /* rgba(255,255,255,0.06) */
+    --surface-border: 0 0% 100% / 0.08;
+    /* rgba(255,255,255,0.08) */
+    --surface-shadow: 0 10px 30px rgba(0, 0, 0, 0.35);
+
+    /* Text Styles */
+    --text: 200 100% 98% / 0.92;
+    /* rgba(243,251,255,0.92) */
+    --text-muted: 200 100% 98% / 0.68;
+    /* rgba(243,251,255,0.68) */
+
+    /* Lines and Interactive */
+    --line: 0 0% 100% / 0.10;
+    /* rgba(255,255,255,0.10) */
+    --accent: 0 0% 100% / 0.12;
+    /* hover/selected rgba(255,255,255,0.12) */
+
+    --background: var(--app-bg);
+    --foreground: var(--text);
+    --title: var(--text);
+
+    --card: var(--surface);
+    --card-foreground: var(--text);
+
+    --popover: var(--surface);
+    --popover-foreground: var(--text);
+
+    --primary: 219 100% 50%;
+    --primary-foreground: 210 40% 98%;
+
+    --secondary: 0 0% 100% / 0.08;
+    --secondary-foreground: var(--text);
+
+    --muted: var(--line);
+    --muted-foreground: var(--text-muted);
+
+    --accent-foreground: var(--text);
+
+    --destructive: 0 62.8% 30.6%;
+    --destructive-foreground: 210 40% 98%;
+
+    --border: var(--line);
+    --input: var(--line);
+    --ring: 219 100% 50%;
+    --header: var(--surface);
+  }
+
+  .page-heading {
+    @apply text-title transition-colors duration-300 font-black tracking-tighter;
+    color: hsl(var(--title));
+  }
+
+  .page-subheading {
+    @apply text-muted-foreground transition-colors duration-300;
+  }
+
+  .surface-card {
+    background: hsl(var(--surface));
+    border: 1px solid hsl(var(--surface-border));
+    box-shadow: var(--surface-shadow);
+    transition: all 0.3s ease;
+  }
+
+  .dark .surface-card {
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+  }
+}
+
+@layer utilities {
+  .glass {
+    @apply bg-white/10 dark:bg-black/20 backdrop-blur-xl border border-white/20 dark:border-white/5;
+  }
+
+  .glass-card {
+    @apply surface-card;
+  }
+
+  .scrollbar-hide::-webkit-scrollbar {
+    display: none;
+  }
+
+  .scrollbar-hide {
+    -ms-overflow-style: none;
+    /* IE and Edge */
+    scrollbar-width: none;
+    /* Firefox */
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border selection:bg-primary/20;
+  }
+
+  body {
+    @apply bg-background text-foreground antialiased transition-colors duration-500;
+  }
+
+  .dark body {
+    background-image: radial-gradient(circle at 50% -20%, rgba(255, 255, 255, 0.03) 0%, transparent 70%);
+    background-attachment: fixed;
+  }
+}
+
+:root {
+  --chart-1: 219 100% 50%;
+  --chart-2: 262 83% 53%;
+  --chart-3: 316 83% 53%;
+  --chart-4: 161 83% 53%;
+  --chart-5: 47 83% 53%;
+}
+
+.dark {
+  --chart-1: 219 100% 55%;
+  --chart-2: 262 91% 60%;
+  --chart-3: 316 91% 60%;
+  --chart-4: 161 91% 60%;
+  --chart-5: 47 91% 60%;
+}
+
+@layer components {
+  .lp-table {
+    @apply w-full border-separate border-spacing-0 overflow-hidden;
+  }
+
+  .lp-table th,
+  .lp-table td {
+    @apply p-[20px_32px] align-middle text-left transition-colors border-none;
+  }
+
+  .lp-table thead th {
+    /* Dark mode: #080909, Light mode: #F4F7F9 */
+    @apply bg-[#F4F7F9] dark:bg-[#080909] text-xs font-semibold text-muted-foreground/70 border-b border-zinc-200 dark:border-zinc-800/80;
+  }
+
+  .lp-table tbody tr {
+    /* Dark mode: fundo muito escuro, Light mode: fundo branco */
+    @apply bg-white dark:bg-black/40 border-b border-zinc-200 dark:border-zinc-800/80;
+  }
+
+  .lp-table tbody tr:hover {
+    /* Light mode: azul, Dark mode: branco */
+    @apply bg-primary/10 dark:bg-white/10 transition-colors;
+  }
+
+  .lp-table-empty {
+    @apply text-center py-20 text-muted-foreground font-medium;
+  }
+
+  /* Botões azuis em ambos os modos */
+  .btn-primary {
+    @apply bg-primary text-primary-foreground hover:bg-primary/90;
+  }
+
+  /* Badge styles para tabelas */
+  .table-badge {
+    @apply inline-flex items-center justify-center px-3 py-1 rounded-full text-xs font-semibold;
+  }
+
+  .table-badge-success {
+    @apply bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20;
+  }
+
+  .table-badge-warning {
+    @apply bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20;
+  }
+
+  .table-badge-error {
+    @apply bg-red-500/10 text-red-600 dark:text-red-400 border border-red-500/20;
+  }
+
+  .table-badge-info {
+    @apply bg-blue-500/10 text-blue-600 dark:text-blue-400 border border-blue-500/20;
+  }
+}
+
+/* Fix: Remove focus outlines for all elements to prevent borders on click */
+:focus {
+  outline: none !important;
+  box-shadow: none !important;
+}
+
+svg,
+svg * {
+  outline: none !important;
+}
+
+/* ========================================
+   PREMIUM DATATABLE STYLES
+   Light: White/Clean | Dark: Glassmorphic Premium
+   ======================================== */
+
+@layer components {
+
+  /* Container */
+  .premium-datatable {
+    @apply rounded-lg overflow-hidden;
+    /* Light: white container */
+    @apply bg-white;
+    /* Dark: glassmorphic container with blur */
+    @apply dark:bg-white/[0.06] dark:backdrop-blur-md;
+    @apply border border-slate-200 dark:border-white/10;
+  }
+
+  /* Toolbar */
+  .premium-datatable-toolbar {
+    @apply p-6 border-b border-slate-200 dark:border-white/10;
+  }
+
+  /* Date Button */
+  .premium-date-button {
+    @apply text-xs font-medium;
+    @apply bg-white dark:bg-white/5;
+    @apply border-slate-300 dark:border-white/10;
+    @apply hover:bg-slate-50 dark:hover:bg-white/10;
+  }
+
+  /* Filter Button (Blue CTA) */
+  .premium-filter-button {
+    @apply text-xs font-bold;
+    @apply bg-primary text-primary-foreground;
+    @apply hover:bg-primary/90;
+    @apply border-none;
+  }
+
+  /* Search Input */
+  .premium-search-input {
+    @apply bg-slate-50 dark:bg-white/5;
+    @apply border-slate-300 dark:border-white/10;
+    @apply text-slate-900 dark:text-slate-100;
+    @apply placeholder:text-slate-500 dark:placeholder:text-slate-400;
+    @apply focus-visible:ring-primary;
+  }
+
+  /* Control Button */
+  .premium-control-button {
+    @apply text-xs font-medium;
+    @apply bg-white dark:bg-white/5;
+    @apply border-slate-300 dark:border-white/10;
+    @apply hover:bg-slate-50 dark:hover:bg-white/10;
+  }
+
+  /* Table Container */
+  .premium-datatable-container {
+    @apply relative overflow-x-auto;
+  }
+
+  /* Sticky Header */
+  .premium-datatable-header {
+    @apply sticky top-0 z-10;
+    /* Light: #F4F7F9 with opacity */
+    @apply bg-[#F4F7F9]/95 backdrop-blur-sm;
+    /* Dark: #080909 glassmorphic */
+    @apply dark:bg-[#080909]/80 dark:backdrop-blur-md;
+    @apply border-b border-slate-200 dark:border-white/10;
+  }
+
+  /* Table Head Cells */
+  .premium-table-head {
+    @apply px-8 py-5;
+    @apply text-xs font-semibold text-muted-foreground/70;
+    @apply text-slate-600 dark:text-slate-400;
+    @apply border-none;
+  }
+
+  /* Table Rows */
+  .premium-table-row {
+    @apply border-b border-slate-200 dark:border-white/10;
+    @apply transition-colors duration-150;
+    /* Light: white background */
+    @apply bg-white;
+    /* Dark: transparent */
+    @apply dark:bg-transparent;
+  }
+
+  /* Row Hover State */
+  .premium-table-row:hover {
+    /* Light: blue tint */
+    @apply bg-primary/5;
+    /* Dark: white tint */
+    @apply dark:bg-white/[0.06];
+  }
+
+  /* Row Selected State */
+  .premium-table-row[data-state="selected"] {
+    /* Light: blue selected */
+    @apply bg-blue-50;
+    /* Dark: blue selected */
+    @apply dark:bg-blue-500/10;
+  }
+
+  /* Table Cells */
+  .premium-table-cell {
+    @apply px-8 py-5;
+    @apply text-sm;
+    @apply text-slate-900 dark:text-slate-100;
+    @apply border-none;
+  }
+
+  /* Footer */
+  .premium-datatable-footer {
+    @apply px-6 py-4;
+    @apply border-t border-slate-200 dark:border-white/10;
+  }
+
+  /* Select Dropdown */
+  .premium-select {
+    @apply h-8 rounded-md px-3 text-sm;
+    @apply bg-white dark:bg-white/5;
+    @apply border border-slate-300 dark:border-white/10;
+    @apply text-slate-900 dark:text-slate-100;
+    @apply focus:outline-none focus:ring-2 focus:ring-primary;
+  }
+
+  /* Pagination Buttons */
+  .premium-pagination-button {
+    @apply bg-white dark:bg-white/5;
+    @apply border-slate-300 dark:border-white/10;
+    @apply hover:bg-slate-50 dark:hover:bg-white/10;
+    @apply disabled:opacity-50 disabled:cursor-not-allowed;
+  }
+}

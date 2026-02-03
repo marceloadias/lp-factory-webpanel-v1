@@ -1,0 +1,149 @@
+
+> webpanel@0.1.0 lint
+> eslint
+
+
+G:\lp-factory-webpanel-v1\webpanel\src\app\audit\page.tsx
+   11:5   warning  'Terminal' is defined but never used                             @typescript-eslint/no-unused-vars
+   20:16  warning  'CardContent' is defined but never used                          @typescript-eslint/no-unused-vars
+   20:29  warning  'CardHeader' is defined but never used                           @typescript-eslint/no-unused-vars
+   20:41  warning  'CardTitle' is defined but never used                            @typescript-eslint/no-unused-vars
+   84:12  warning  'loading' is assigned a value but never used                     @typescript-eslint/no-unused-vars
+   97:25  error    Unexpected any. Specify a different type                         @typescript-eslint/no-explicit-any
+  197:41  error    `"` can be escaped with `&quot;`, `&ldquo;`, `&#34;`, `&rdquo;`  react/no-unescaped-entities
+  197:54  error    `"` can be escaped with `&quot;`, `&ldquo;`, `&#34;`, `&rdquo;`  react/no-unescaped-entities
+
+G:\lp-factory-webpanel-v1\webpanel\src\app\clusters\[id]\page.tsx
+    7:5   warning  'RefreshCw' is defined but never used     @typescript-eslint/no-unused-vars
+    8:5   warning  'GitCompare' is defined but never used    @typescript-eslint/no-unused-vars
+  105:39  error    Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+G:\lp-factory-webpanel-v1\webpanel\src\app\clusters\create\page.tsx
+  12:5   warning  'CheckCircle2' is defined but never used  @typescript-eslint/no-unused-vars
+  30:10  warning  'Separator' is defined but never used     @typescript-eslint/no-unused-vars
+
+G:\lp-factory-webpanel-v1\webpanel\src\app\clusters\page.tsx
+  40:12  warning  'scoreRange' is assigned a value but never used         @typescript-eslint/no-unused-vars
+  40:24  warning  'setScoreRange' is assigned a value but never used      @typescript-eslint/no-unused-vars
+  41:12  warning  'updateEligible' is assigned a value but never used     @typescript-eslint/no-unused-vars
+  41:28  warning  'setUpdateEligible' is assigned a value but never used  @typescript-eslint/no-unused-vars
+
+G:\lp-factory-webpanel-v1\webpanel\src\app\engine-demo\page.tsx
+   4:24  warning  'EngineClientError' is defined but never used  @typescript-eslint/no-unused-vars
+  19:48  error    Unexpected any. Specify a different type       @typescript-eslint/no-explicit-any
+  22:23  error    Unexpected any. Specify a different type       @typescript-eslint/no-explicit-any
+  33:49  error    Unexpected any. Specify a different type       @typescript-eslint/no-explicit-any
+  42:23  error    Unexpected any. Specify a different type       @typescript-eslint/no-explicit-any
+
+G:\lp-factory-webpanel-v1\webpanel\src\app\jobs\page.tsx
+  13:5  warning  'ListFilter' is defined but never used  @typescript-eslint/no-unused-vars
+
+G:\lp-factory-webpanel-v1\webpanel\src\app\overview\page.tsx
+  10:10  warning  'StatusBadge' is defined but never used  @typescript-eslint/no-unused-vars
+  11:10  warning  'ScoreBar' is defined but never used     @typescript-eslint/no-unused-vars
+
+G:\lp-factory-webpanel-v1\webpanel\src\app\providers\page.tsx
+   4:36  warning  'ShieldX' is defined but never used          @typescript-eslint/no-unused-vars
+   6:52  warning  'CardDescription' is defined but never used  @typescript-eslint/no-unused-vars
+  75:10  warning  'cn' is defined but never used               @typescript-eslint/no-unused-vars
+
+G:\lp-factory-webpanel-v1\webpanel\src\app\settings\page.tsx
+  5:5  warning  'Settings' is defined but never used  @typescript-eslint/no-unused-vars
+  8:5  warning  'Bell' is defined but never used      @typescript-eslint/no-unused-vars
+  9:5  warning  'Shield' is defined but never used    @typescript-eslint/no-unused-vars
+
+G:\lp-factory-webpanel-v1\webpanel\src\app\templates\page.tsx
+    4:10  warning  'engineClient' is defined but never used                                                                                                                                                                                                                                                 @typescript-eslint/no-unused-vars
+    8:5   warning  'Filter' is defined but never used                                                                                                                                                                                                                                                       @typescript-eslint/no-unused-vars
+    9:5   warning  'ExternalLink' is defined but never used                                                                                                                                                                                                                                                 @typescript-eslint/no-unused-vars
+   12:5   warning  'ShoppingCart' is defined but never used                                                                                                                                                                                                                                                 @typescript-eslint/no-unused-vars
+   13:5   warning  'Zap' is defined but never used                                                                                                                                                                                                                                                          @typescript-eslint/no-unused-vars
+   20:16  warning  'CardContent' is defined but never used                                                                                                                                                                                                                                                  @typescript-eslint/no-unused-vars
+   21:10  warning  'cn' is defined but never used                                                                                                                                                                                                                                                           @typescript-eslint/no-unused-vars
+   63:23  warning  'setTemplates' is assigned a value but never used                                                                                                                                                                                                                                        @typescript-eslint/no-unused-vars
+   64:12  warning  'loading' is assigned a value but never used                                                                                                                                                                                                                                             @typescript-eslint/no-unused-vars
+   64:21  warning  'setLoading' is assigned a value but never used                                                                                                                                                                                                                                          @typescript-eslint/no-unused-vars
+  118:29  warning  Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom image loader to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+
+G:\lp-factory-webpanel-v1\webpanel\src\components\app-sidebar.tsx
+  13:5  warning  'Plus' is defined but never used  @typescript-eslint/no-unused-vars
+
+G:\lp-factory-webpanel-v1\webpanel\src\components\app-topbar.tsx
+   5:10  warning  'Badge' is defined but never used                  @typescript-eslint/no-unused-vars
+   9:10  warning  'SidebarTrigger' is defined but never used         @typescript-eslint/no-unused-vars
+  23:11  warning  'engineOnline' is assigned a value but never used  @typescript-eslint/no-unused-vars
+
+G:\lp-factory-webpanel-v1\webpanel\src\components\clusters\ClustersTable.tsx
+  18:5   warning  'MoreHorizontal' is defined but never used  @typescript-eslint/no-unused-vars
+  20:5   warning  'HardDrive' is defined but never used       @typescript-eslint/no-unused-vars
+  21:5   warning  'Cpu' is defined but never used             @typescript-eslint/no-unused-vars
+  24:10  warning  'cn' is defined but never used              @typescript-eslint/no-unused-vars
+
+G:\lp-factory-webpanel-v1\webpanel\src\components\clusters\VersionHistory.tsx
+   95:64   error  `"` can be escaped with `&quot;`, `&ldquo;`, `&#34;`, `&rdquo;`  react/no-unescaped-entities
+   95:70   error  `"` can be escaped with `&quot;`, `&ldquo;`, `&#34;`, `&rdquo;`  react/no-unescaped-entities
+   95:73   error  `"` can be escaped with `&quot;`, `&ldquo;`, `&#34;`, `&rdquo;`  react/no-unescaped-entities
+   95:93   error  `"` can be escaped with `&quot;`, `&ldquo;`, `&#34;`, `&rdquo;`  react/no-unescaped-entities
+   96:77   error  `"` can be escaped with `&quot;`, `&ldquo;`, `&#34;`, `&rdquo;`  react/no-unescaped-entities
+   96:89   error  `"` can be escaped with `&quot;`, `&ldquo;`, `&#34;`, `&rdquo;`  react/no-unescaped-entities
+   96:92   error  `"` can be escaped with `&quot;`, `&ldquo;`, `&#34;`, `&rdquo;`  react/no-unescaped-entities
+   96:129  error  `"` can be escaped with `&quot;`, `&ldquo;`, `&#34;`, `&rdquo;`  react/no-unescaped-entities
+   97:81   error  `"` can be escaped with `&quot;`, `&ldquo;`, `&#34;`, `&rdquo;`  react/no-unescaped-entities
+   97:93   error  `"` can be escaped with `&quot;`, `&ldquo;`, `&#34;`, `&rdquo;`  react/no-unescaped-entities
+   97:96   error  `"` can be escaped with `&quot;`, `&ldquo;`, `&#34;`, `&rdquo;`  react/no-unescaped-entities
+   97:132  error  `"` can be escaped with `&quot;`, `&ldquo;`, `&#34;`, `&rdquo;`  react/no-unescaped-entities
+   98:64   error  `"` can be escaped with `&quot;`, `&ldquo;`, `&#34;`, `&rdquo;`  react/no-unescaped-entities
+   98:74   error  `"` can be escaped with `&quot;`, `&ldquo;`, `&#34;`, `&rdquo;`  react/no-unescaped-entities
+   98:77   error  `"` can be escaped with `&quot;`, `&ldquo;`, `&#34;`, `&rdquo;`  react/no-unescaped-entities
+   98:93   error  `"` can be escaped with `&quot;`, `&ldquo;`, `&#34;`, `&rdquo;`  react/no-unescaped-entities
+   99:77   error  `"` can be escaped with `&quot;`, `&ldquo;`, `&#34;`, `&rdquo;`  react/no-unescaped-entities
+   99:88   error  `"` can be escaped with `&quot;`, `&ldquo;`, `&#34;`, `&rdquo;`  react/no-unescaped-entities
+  100:81   error  `"` can be escaped with `&quot;`, `&ldquo;`, `&#34;`, `&rdquo;`  react/no-unescaped-entities
+  100:92   error  `"` can be escaped with `&quot;`, `&ldquo;`, `&#34;`, `&rdquo;`  react/no-unescaped-entities
+
+G:\lp-factory-webpanel-v1\webpanel\src\components\jobs\JobsTable.tsx
+  19:5   warning  'Filter' is defined but never used          @typescript-eslint/no-unused-vars
+  21:5   warning  'MoreHorizontal' is defined but never used  @typescript-eslint/no-unused-vars
+  25:10  warning  'cn' is defined but never used              @typescript-eslint/no-unused-vars
+
+G:\lp-factory-webpanel-v1\webpanel\src\components\layout\AssistantSheet.tsx
+  4:65  warning  'Sparkles' is defined but never used  @typescript-eslint/no-unused-vars
+
+G:\lp-factory-webpanel-v1\webpanel\src\components\overview\StatsCharts.tsx
+  25:56  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  30:48  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+G:\lp-factory-webpanel-v1\webpanel\src\components\overview\SystemStatus.tsx
+   5:10  warning  'Badge' is defined but never used             @typescript-eslint/no-unused-vars
+   6:10  warning  'Button' is defined but never used            @typescript-eslint/no-unused-vars
+   7:10  warning  'MonitorCheck' is defined but never used      @typescript-eslint/no-unused-vars
+   7:24  warning  'MonitorX' is defined but never used          @typescript-eslint/no-unused-vars
+   7:34  warning  'User' is defined but never used              @typescript-eslint/no-unused-vars
+   7:53  warning  'RefreshCw' is defined but never used         @typescript-eslint/no-unused-vars
+  18:12  warning  'health' is assigned a value but never used   @typescript-eslint/no-unused-vars
+  19:12  warning  'user' is assigned a value but never used     @typescript-eslint/no-unused-vars
+  20:12  warning  'loading' is assigned a value but never used  @typescript-eslint/no-unused-vars
+  34:26  warning  'error' is defined but never used             @typescript-eslint/no-unused-vars
+  38:18  warning  'error' is defined but never used             @typescript-eslint/no-unused-vars
+
+G:\lp-factory-webpanel-v1\webpanel\src\components\overview\TablesRow.tsx
+  37:22  warning  'error' is defined but never used  @typescript-eslint/no-unused-vars
+
+G:\lp-factory-webpanel-v1\webpanel\src\components\providers\ProviderCard.tsx
+  17:5   warning  'CheckCircle2' is defined but never used  @typescript-eslint/no-unused-vars
+  25:35  error    Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  28:42  warning  'onUpdate' is defined but never used      @typescript-eslint/no-unused-vars
+  50:18  warning  'error' is defined but never used         @typescript-eslint/no-unused-vars
+
+G:\lp-factory-webpanel-v1\webpanel\src\lib\engine\engineClient.ts
+   1:10  warning  'Cluster' is defined but never used                                                                    @typescript-eslint/no-unused-vars
+   1:19  warning  'Job' is defined but never used                                                                        @typescript-eslint/no-unused-vars
+  24:9   warning  Unused eslint-disable directive (no problems were reported from '@typescript-eslint/no-explicit-any')
+
+G:\lp-factory-webpanel-v1\webpanel\src\lib\engine\sseClient.ts
+   1:10  warning  'Job' is defined but never used  @typescript-eslint/no-unused-vars
+  97:36  warning  'err' is defined but never used  @typescript-eslint/no-unused-vars
+
+Ô£û 97 problems (31 errors, 66 warnings)
+  0 errors and 1 warning potentially fixable with the `--fix` option.
+
