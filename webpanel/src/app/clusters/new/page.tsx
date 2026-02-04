@@ -5,7 +5,13 @@ import { PageHeader } from "@/components/ui/page-header";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import {
+    Card,
+    CardContent,
+    CardHeader,
+    CardTitle,
+    CardDescription,
+} from "@/components/ui/card";
 import { apiClient } from "@/lib/api/client";
 import { appStore } from "@/lib/store";
 import { I18N } from "@/lib/i18n/pt-BR";
@@ -40,7 +46,7 @@ export default function NewClusterPage() {
     const [loading, setLoading] = useState(false);
 
     const [projects, setProjects] = useState<InputProject[]>([]);
-    const [selectedProject, setSelectedProject] = useState<string>(""); // agora é obrigatório
+    const [selectedProject, setSelectedProject] = useState<string>(""); // obrigatório
 
     // Data do formulário (DD-MM-YY)
     const today = useMemo(() => {
@@ -67,13 +73,15 @@ export default function NewClusterPage() {
         product_url: "",
         affiliate_url: "",
         affiliate_checkout_url: "",
-        commission: "",
+        commission: "", // ✅ opcional
         audience: "",
         video_url: "",
     });
 
     // ---------- helpers ----------
-    const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    const handleChange = (
+        e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
+    ) => {
         const { name, value } = e.target;
         setFormData((prev) => ({ ...prev, [name]: value }));
     };
@@ -122,7 +130,7 @@ export default function NewClusterPage() {
                 const current = state.selectedProject || "";
                 const isValid = current && list.some((p) => p.project_id === current);
 
-                const chosen = isValid ? current : (list[0]?.project_id || "");
+                const chosen = isValid ? current : list[0]?.project_id || "";
                 if (chosen) {
                     appStore.setSelectedProject(chosen);
                     setSelectedProject(chosen);
@@ -179,7 +187,10 @@ export default function NewClusterPage() {
             toast.error("URL de Afiliado inválida (deve iniciar com http:// ou https://).");
             return;
         }
-        if (formData.affiliate_checkout_url && !validateUrl(formData.affiliate_checkout_url)) {
+        if (
+            formData.affiliate_checkout_url &&
+            !validateUrl(formData.affiliate_checkout_url)
+        ) {
             toast.error("URL de Checkout inválida (deve iniciar com http:// ou https://).");
             return;
         }
@@ -188,11 +199,17 @@ export default function NewClusterPage() {
             return;
         }
 
-        // comissão
-        const commissionValue = parseFloat(String(formData.commission).replace(",", "."));
-        if (isNaN(commissionValue) || commissionValue <= 0) {
-            toast.error("A comissão deve ser um valor numérico positivo.");
-            return;
+        // ✅ comissão (OPCIONAL)
+        let commissionValue: number | undefined = undefined;
+        const commissionRaw = String(formData.commission ?? "").trim();
+
+        if (commissionRaw.length > 0) {
+            const parsed = parseFloat(commissionRaw.replace(",", "."));
+            if (!Number.isFinite(parsed) || parsed <= 0) {
+                toast.error("A comissão deve ser um valor numérico positivo (ou deixe em branco).");
+                return;
+            }
+            commissionValue = parsed;
         }
 
         // nicho vem do projeto
@@ -222,7 +239,10 @@ export default function NewClusterPage() {
                 product_url: formData.product_url,
                 affiliate_url: formData.affiliate_url,
                 affiliate_checkout_url: formData.affiliate_checkout_url || undefined,
+
+                // ✅ opcional
                 commission: commissionValue,
+
                 audience: formData.audience,
                 video_url: formData.video_url || undefined,
             },
@@ -488,13 +508,12 @@ export default function NewClusterPage() {
 
                                 <div className="space-y-3">
                                     <Label className="text-xs font-black uppercase tracking-widest text-muted-foreground px-1">
-                                        Comissão (R$) *
+                                        Comissão (R$) (Opcional)
                                     </Label>
                                     <div className="relative">
                                         <DollarSign className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-primary" />
                                         <Input
                                             name="commission"
-                                            required
                                             type="number"
                                             step="0.01"
                                             placeholder="0.00"

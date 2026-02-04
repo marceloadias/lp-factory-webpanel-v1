@@ -11,8 +11,8 @@ import {
     Plus,
     Loader2,
     ChevronRight,
-    MapPin,
     ArrowUpDown,
+    DollarSign,
 } from "lucide-react";
 import { EmptyState } from "@/components/ui/empty-state";
 import { ScoreBar } from "@/components/ui/score-bar";
@@ -32,11 +32,44 @@ type InputProject = {
     lp_domain?: string;
 };
 
+function toNumberOrZero(v: unknown): number {
+    if (v === null || v === undefined || v === "") return 0;
+    if (typeof v === "number") return Number.isFinite(v) ? v : 0;
+    if (typeof v === "string") {
+        const n = Number(v.replace(",", "."));
+        return Number.isFinite(n) ? n : 0;
+    }
+    const n = Number(v);
+    return Number.isFinite(n) ? n : 0;
+}
+
+function getCommissionNumber(cluster: Cluster): number {
+    // suporta:
+    // - cluster.payload.commission (preferido)
+    // - cluster.commission (fallback)
+    const raw =
+        (cluster as any)?.payload?.commission ?? (cluster as any)?.commission ?? null;
+
+    return toNumberOrZero(raw);
+}
+
+function getCommissionBRL(cluster: Cluster): string {
+    const n = getCommissionNumber(cluster);
+    if (!n || n <= 0) return "—";
+    return n.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
+}
+
+function safeText(v: unknown, fallback = "—") {
+    if (v === null || v === undefined) return fallback;
+    const s = String(v).trim();
+    return s.length ? s : fallback;
+}
+
 export default function ClustersPage() {
     const [clusters, setClusters] = useState<Cluster[]>([]);
     const [loading, setLoading] = useState(true);
 
-    // Agora: seleciona projeto real (e não "all" por padrão)
+    // seleciona projeto real
     const [selectedProject, setSelectedProject] = useState<string>("");
     const [projects, setProjects] = useState<InputProject[]>([]);
 
@@ -77,14 +110,12 @@ export default function ClustersPage() {
                 const chosen = isValid ? current : first;
 
                 if (chosen) {
-                    // atualiza store e state local
                     appStore.setSelectedProject(chosen);
                     setSelectedProject(chosen);
                 }
             } catch (e) {
                 console.error("Failed to load input projects", e);
                 setProjects([]);
-                // mantém selectedProject como está
             }
         };
 
@@ -96,7 +127,7 @@ export default function ClustersPage() {
         return projects.find((p) => p.project_id === selectedProject);
     }, [projects, selectedProject]);
 
-    const fetchClusters = async (projectId: string, isMock: boolean) => {
+    const fetchClusters = async (projectId: string) => {
         setLoading(true);
         try {
             const params = projectId ? { projectId } : {};
@@ -117,7 +148,7 @@ export default function ClustersPage() {
             setLoading(false);
             return;
         }
-        fetchClusters(selectedProject, mockMode);
+        fetchClusters(selectedProject);
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [selectedProject, mockMode]);
 
@@ -160,25 +191,30 @@ export default function ClustersPage() {
                         onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
                         className={headerButtonClass}
                     >
-                        {I18N.COMMON.NAME} / Infra
+                        {I18N.COMMON.NAME}
                         <ArrowUpDown className="ml-2 h-3 w-3" />
                     </Button>
                 );
             },
             cell: ({ row }) => {
                 const cluster = row.original;
+
+                const status = (cluster.status || "").toLowerCase();
+                const statusLabel = status === "active" ? "Online" : status ? status : "—";
+
                 return (
                     <div className="flex items-center gap-4">
                         <div className="p-2 rounded-xl bg-card border border-border/5 text-muted-foreground hover:text-primary transition-colors">
                             <Database className="h-5 w-5" />
                         </div>
-                        <div className="flex flex-col">
-                            <span className="font-semibold text-sm tracking-tight text-foreground hover:text-primary transition-colors">
-                                {cluster.name}
+                        <div className="flex flex-col min-w-0">
+                            <span className="font-semibold text-sm tracking-tight text-foreground hover:text-primary transition-colors truncate">
+                                {safeText(cluster.name)}
                             </span>
                             <div className="flex items-center gap-2 text-xs font-medium text-muted-foreground/70">
-                                <MapPin className="h-3 w-3" />
-                                {cluster.provider} · {cluster.region}
+                                <span className="font-mono">{safeText(cluster.project_id)}</span>
+                                <span className="opacity-30">·</span>
+                                <span className="uppercase">{statusLabel}</span>
                             </div>
                         </div>
                     </div>
@@ -208,6 +244,41 @@ export default function ClustersPage() {
                 </Badge>
             ),
         },
+
+        // ✅ COLUNA: Comissão (opcional)
+        {
+            id: "commission",
+            header: ({ column }) => {
+                return (
+                    <Button
+                        variant="ghost"
+                        onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+                        className={headerButtonClass}
+                    >
+                        Comissão
+                        <ArrowUpDown className="ml-2 h-3 w-3" />
+                    </Button>
+                );
+            },
+            sortingFn: (a, b) => {
+                const an = getCommissionNumber(a.original);
+                const bn = getCommissionNumber(b.original);
+                return an - bn;
+            },
+            cell: ({ row }) => {
+                const val = getCommissionBRL(row.original);
+
+                return (
+                    <div className="flex items-center gap-2">
+                        <DollarSign className="h-4 w-4 text-muted-foreground/70" />
+                        <span className="text-xs font-mono font-semibold text-muted-foreground">
+                            {val}
+                        </span>
+                    </div>
+                );
+            },
+        },
+
         {
             accessorKey: "score",
             header: ({ column }) => {
@@ -268,7 +339,7 @@ export default function ClustersPage() {
             },
             cell: ({ row }) => (
                 <span className="text-xs font-mono font-semibold text-muted-foreground">
-                    v{row.original.version}
+                    v{(row.original as any)?.version ?? "—"}
                 </span>
             ),
         },
@@ -309,13 +380,20 @@ export default function ClustersPage() {
                 <div className="flex flex-col items-end gap-3">
                     <div className="flex items-center gap-2">
                         <span
-                            className={`text-xs font-semibold tracking-tight px-2 py-0.5 rounded-full ${mockMode ? "bg-amber-500/10 text-amber-500" : "bg-emerald-500/10 text-emerald-500"
+                            className={`text-xs font-semibold tracking-tight px-2 py-0.5 rounded-full ${mockMode
+                                    ? "bg-amber-500/10 text-amber-500"
+                                    : "bg-emerald-500/10 text-emerald-500"
                                 }`}
                         >
-                            {mockMode ? `Dados: ${I18N.COMMON.MOCK_MODE}` : `Dados: ${I18N.COMMON.REAL_MODE}`}
+                            {mockMode
+                                ? `Dados: ${I18N.COMMON.MOCK_MODE}`
+                                : `Dados: ${I18N.COMMON.REAL_MODE}`}
                         </span>
 
-                        <Button asChild className="rounded-full gap-2 shadow-lg shadow-primary/20 h-7 text-xs font-semibold">
+                        <Button
+                            asChild
+                            className="rounded-full gap-2 shadow-lg shadow-primary/20 h-7 text-xs font-semibold"
+                        >
                             <Link href="/clusters/new">
                                 <Plus className="h-3 w-3" />
                                 {I18N.CLUSTERS.CREATE}
@@ -325,9 +403,7 @@ export default function ClustersPage() {
 
                     {/* Seletor de Projeto */}
                     <div className="flex flex-col items-end gap-1">
-                        <div className="text-xs font-semibold text-muted-foreground/70">
-                            Projeto
-                        </div>
+                        <div className="text-xs font-semibold text-muted-foreground/70">Projeto</div>
 
                         <select
                             className="h-8 rounded-md border bg-background px-2 text-xs font-semibold"
@@ -347,8 +423,9 @@ export default function ClustersPage() {
 
                         {selectedProjectObj && (
                             <div className="text-xs text-muted-foreground font-mono opacity-80">
-                                ELP: <span className="font-semibold">{selectedProjectObj.hub_elp_domain}</span>{" "}
-                                · LP: <span className="font-semibold">{selectedProjectObj.lp_domain}</span>
+                                ELP:{" "}
+                                <span className="font-semibold">{selectedProjectObj.hub_elp_domain}</span> ·
+                                LP: <span className="font-semibold">{selectedProjectObj.lp_domain}</span>
                             </div>
                         )}
                     </div>

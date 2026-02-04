@@ -5,7 +5,10 @@ import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
-import { apiClient } from "@/lib/api/client";
+
+import type { EngineCluster } from "@/lib/engine-types";
+import { fetchCluster } from "@/lib/engine";
+
 import { appStore } from "@/lib/store";
 import { PageHeader } from "@/components/ui/page-header";
 import { Button } from "@/components/ui/button";
@@ -35,35 +38,8 @@ import {
     Activity,
     Boxes,
     FileJson,
-    Tag, // ✅ FIX: faltava este import
+    Tag,
 } from "lucide-react";
-
-// ✅ Shape REAL do Engine
-type ClusterPayload = {
-    created_date?: string; // "01-02-26"
-    product_name?: string;
-    product_type?: string;
-    affiliate_name?: string;
-    platform_name?: string;
-    product_url?: string;
-    affiliate_url?: string;
-    affiliate_checkout_url?: string;
-    commission?: number;
-    audience?: string;
-    niche?: string;
-    video_url?: string;
-};
-
-type EngineCluster = {
-    id: string;
-    name: string;
-    status: string;
-    project_id: string;
-    score?: number;
-    created_at?: string;
-    updated_at?: string;
-    payload?: ClusterPayload;
-};
 
 function safeText(v: unknown, fallback = "—") {
     if (v === null || v === undefined) return fallback;
@@ -181,7 +157,6 @@ export default function ClusterDetailsPage() {
     const params = useParams<{ id?: string }>();
     const clusterId = params?.id;
 
-
     const [cluster, setCluster] = useState<EngineCluster | null>(null);
     const [loading, setLoading] = useState(true);
     const [mockMode, setMockMode] = useState(false);
@@ -191,7 +166,7 @@ export default function ClusterDetailsPage() {
 
     const [copiedKey, setCopiedKey] = useState<string | null>(null);
 
-    // ✅ FIX: cleanup NÃO pode retornar boolean
+    // mock mode (store) - sem await aqui
     useEffect(() => {
         const state = appStore.getState();
         setMockMode(state.mockMode);
@@ -200,7 +175,6 @@ export default function ClusterDetailsPage() {
             setMockMode(newState.mockMode);
         });
 
-        // ✅ aqui o cleanup retorna void
         return () => {
             unsub();
         };
@@ -222,8 +196,7 @@ export default function ClusterDetailsPage() {
             setError(null);
 
             try {
-                const res = await apiClient.get<EngineCluster>(`/clusters/${clusterId}`);
-                const data = res?.success ? res.data : null;
+                const data = await fetchCluster(String(clusterId));
 
                 if (!alive) return;
 
@@ -313,7 +286,7 @@ export default function ClusterDetailsPage() {
                 setCopiedKey(key);
                 window.setTimeout(() => setCopiedKey(null), 1200);
             } catch {
-                // falhou: não marca status
+                // falhou
             }
         }
     }
@@ -379,8 +352,8 @@ export default function ClusterDetailsPage() {
                 <div className="flex items-center gap-2">
                     <span
                         className={`text-[11px] font-semibold px-2.5 py-1 rounded-full border ${mockMode
-                            ? "bg-amber-500/10 text-amber-700 border-amber-500/15"
-                            : "bg-emerald-500/10 text-emerald-700 border-emerald-500/15"
+                                ? "bg-amber-500/10 text-amber-700 border-amber-500/15"
+                                : "bg-emerald-500/10 text-emerald-700 border-emerald-500/15"
                             }`}
                     >
                         {mockMode ? "Dados: Mock" : "Dados: Real"}
@@ -437,36 +410,45 @@ export default function ClusterDetailsPage() {
                             <Field
                                 label="Nome do produto"
                                 icon={<Tag className="h-4 w-4" />}
-                                value={safeText(payload.product_name || cluster.name)}
+                                value={safeText((payload as any).product_name || cluster.name)}
                             />
                             <Field
                                 label="Tipo de produto"
-                                value={<span className="uppercase">{safeText(payload.product_type)}</span>}
+                                value={
+                                    <span className="uppercase">
+                                        {safeText((payload as any).product_type)}
+                                    </span>
+                                }
                             />
-                            <Field label="Plataforma" value={safeText(payload.platform_name)} />
+                            <Field label="Plataforma" value={safeText((payload as any).platform_name)} />
                             <Field
                                 label="Afiliado"
                                 icon={<User className="h-4 w-4" />}
-                                value={safeText(payload.affiliate_name)}
+                                value={safeText((payload as any).affiliate_name)}
                             />
                             <Field
                                 label="Comissão"
                                 icon={<DollarSign className="h-4 w-4" />}
                                 value={
-                                    payload.commission !== undefined && payload.commission !== null
-                                        ? Number(payload.commission).toLocaleString("pt-BR", {
+                                    (payload as any).commission !== undefined &&
+                                        (payload as any).commission !== null
+                                        ? Number((payload as any).commission).toLocaleString("pt-BR", {
                                             style: "currency",
                                             currency: "BRL",
                                         })
                                         : "—"
                                 }
                             />
-                            <Field label="Nicho" value={safeText(payload.niche)} />
-                            <Field label="Público alvo" value={safeText(payload.audience)} />
+                            <Field label="Nicho" value={safeText((payload as any).niche)} />
+                            <Field label="Público alvo" value={safeText((payload as any).audience)} />
                             <Field
                                 label="Data de criação (created_date)"
                                 icon={<Calendar className="h-4 w-4" />}
-                                value={<span className="font-mono">{safeText(payload.created_date)}</span>}
+                                value={
+                                    <span className="font-mono">
+                                        {safeText((payload as any).created_date)}
+                                    </span>
+                                }
                             />
                         </div>
                     </CardContent>
@@ -491,7 +473,9 @@ export default function ClusterDetailsPage() {
                             </div>
 
                             <div className="rounded-2xl border border-border/10 bg-background/60 p-4">
-                                <div className="text-xs font-medium text-muted-foreground">Última sincronização</div>
+                                <div className="text-xs font-medium text-muted-foreground">
+                                    Última sincronização
+                                </div>
                                 <div className="mt-1 text-sm md:text-base font-semibold font-mono text-primary">
                                     {safeText(updatedAt)}
                                 </div>
@@ -505,8 +489,8 @@ export default function ClusterDetailsPage() {
                                 <div className="flex items-center gap-2">
                                     <span
                                         className={`h-2 w-2 rounded-full ${(cluster.status || "").toLowerCase() === "active"
-                                            ? "bg-emerald-500"
-                                            : "bg-rose-500"
+                                                ? "bg-emerald-500"
+                                                : "bg-rose-500"
                                             }`}
                                     />
                                     <span className="text-sm font-semibold">{statusLabel}</span>
@@ -554,17 +538,17 @@ export default function ClusterDetailsPage() {
                     <CardContent className="space-y-3">
                         <UrlRow
                             label="Link da página de vendas"
-                            url={payload.product_url}
+                            url={(payload as any).product_url}
                             onCopy={(t) => copyText("product_url", t)}
                         />
                         <UrlRow
                             label="Link de afiliado (hoplink)"
-                            url={payload.affiliate_url}
+                            url={(payload as any).affiliate_url}
                             onCopy={(t) => copyText("affiliate_url", t)}
                         />
                         <UrlRow
                             label="Link de checkout direto"
-                            url={payload.affiliate_checkout_url}
+                            url={(payload as any).affiliate_checkout_url}
                             onCopy={(t) => copyText("affiliate_checkout_url", t)}
                         />
 
@@ -585,7 +569,7 @@ export default function ClusterDetailsPage() {
                         </CardTitle>
                         <CardDescription className="text-sm">
                             Exatamente o que o Engine retornou em{" "}
-                            <span className="font-mono">/clusters/{clusterId}</span>
+                            <span className="font-mono">/clusters/{String(clusterId ?? "")}</span>
                         </CardDescription>
                     </CardHeader>
 
