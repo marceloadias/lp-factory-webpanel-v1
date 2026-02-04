@@ -5,7 +5,7 @@ import { PageHeader } from "@/components/ui/page-header";
 import { Button } from "@/components/ui/button";
 import { apiClient } from "@/lib/api/client";
 import { appStore } from "@/lib/store";
-import { Cluster } from "@/lib/types";
+import type { Cluster, InputProject } from "@/lib/types";
 import {
     Database,
     Plus,
@@ -20,17 +20,9 @@ import { StatusBadge } from "@/components/ui/status-badge";
 import Link from "next/link";
 import { Badge } from "@/components/ui/badge";
 import { PremiumDataTable } from "@/components/datatable/PremiumDataTable";
-import { ColumnDef } from "@tanstack/react-table";
+import type { ColumnDef } from "@tanstack/react-table";
 import { Checkbox } from "@/components/ui/checkbox";
 import { I18N } from "@/lib/i18n/pt-BR";
-
-type InputProject = {
-    project_id: string;
-    niche?: string;
-    locale?: string;
-    hub_elp_domain?: string;
-    lp_domain?: string;
-};
 
 function toNumberOrZero(v: unknown): number {
     if (v === null || v === undefined || v === "") return 0;
@@ -43,13 +35,15 @@ function toNumberOrZero(v: unknown): number {
     return Number.isFinite(n) ? n : 0;
 }
 
+function safeText(v: unknown, fallback = "—") {
+    if (v === null || v === undefined) return fallback;
+    const s = String(v).trim();
+    return s.length ? s : fallback;
+}
+
 function getCommissionNumber(cluster: Cluster): number {
-    // suporta:
-    // - cluster.payload.commission (preferido)
-    // - cluster.commission (fallback)
     const raw =
         (cluster as any)?.payload?.commission ?? (cluster as any)?.commission ?? null;
-
     return toNumberOrZero(raw);
 }
 
@@ -59,10 +53,25 @@ function getCommissionBRL(cluster: Cluster): string {
     return n.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
 }
 
-function safeText(v: unknown, fallback = "—") {
-    if (v === null || v === undefined) return fallback;
-    const s = String(v).trim();
-    return s.length ? s : fallback;
+function getStatusUi(statusRaw: unknown): { label: string; badge: "success" | "danger" | "neutral" } {
+    const s = String(statusRaw ?? "").toLowerCase().trim();
+
+    if (!s) return { label: "—", badge: "neutral" };
+
+    if (s === "active") return { label: "Online", badge: "success" };
+
+    // estados comuns do Engine
+    if (s === "paused") return { label: "Pausado", badge: "neutral" };
+    if (s === "retired") return { label: "Retirado", badge: "neutral" };
+    if (s === "deleted") return { label: "Deletado", badge: "danger" };
+
+    // compat legado
+    if (s === "inactive") return { label: "Offline", badge: "danger" };
+    if (s === "provisioning") return { label: "Provisionando", badge: "neutral" };
+    if (s === "error") return { label: "Erro", badge: "danger" };
+
+    // fallback: mostra o próprio status
+    return { label: s.toUpperCase(), badge: "neutral" };
 }
 
 export default function ClustersPage() {
@@ -104,7 +113,7 @@ export default function ClustersPage() {
                 // se ainda não tem selecionado, escolhe o primeiro projeto
                 const state = appStore.getState();
                 const current = state.selectedProject || "";
-                const isValid = current && list.some((p) => p.project_id === current);
+                const isValid = current && list.some((p: any) => p.project_id === current);
 
                 const first = list[0]?.project_id || "";
                 const chosen = isValid ? current : first;
@@ -132,7 +141,9 @@ export default function ClustersPage() {
         try {
             const params = projectId ? { projectId } : {};
             const res = await apiClient.listClusters(params);
-            setClusters(Array.isArray(res.data) ? res.data : []);
+
+            // engine pode retornar array direto em data:
+            setClusters(Array.isArray(res.data) ? (res.data as Cluster[]) : []);
         } catch (error) {
             console.error("Failed to fetch clusters", error);
             setClusters([]);
@@ -141,7 +152,7 @@ export default function ClustersPage() {
         }
     };
 
-    // 3) Busca clusters sempre que o projeto muda
+    // 3) Busca clusters sempre que o projeto muda (mockMode não altera a API por enquanto, mas mantemos pra UI)
     useEffect(() => {
         if (!selectedProject) {
             setClusters([]);
@@ -198,9 +209,7 @@ export default function ClustersPage() {
             },
             cell: ({ row }) => {
                 const cluster = row.original;
-
-                const status = (cluster.status || "").toLowerCase();
-                const statusLabel = status === "active" ? "Online" : status ? status : "—";
+                const st = getStatusUi(cluster.status);
 
                 return (
                     <div className="flex items-center gap-4">
@@ -214,7 +223,7 @@ export default function ClustersPage() {
                             <div className="flex items-center gap-2 text-xs font-medium text-muted-foreground/70">
                                 <span className="font-mono">{safeText(cluster.project_id)}</span>
                                 <span className="opacity-30">·</span>
-                                <span className="uppercase">{statusLabel}</span>
+                                <span className="uppercase">{st.label}</span>
                             </div>
                         </div>
                     </div>
@@ -245,7 +254,7 @@ export default function ClustersPage() {
             ),
         },
 
-        // ✅ COLUNA: Comissão (opcional)
+        // ✅ Comissão (payload.commission)
         {
             id: "commission",
             header: ({ column }) => {
@@ -303,6 +312,7 @@ export default function ClustersPage() {
                 </div>
             ),
         },
+
         {
             accessorKey: "status",
             header: ({ column }) => {
@@ -317,12 +327,12 @@ export default function ClustersPage() {
                     </Button>
                 );
             },
-            cell: ({ row }) => (
-                <StatusBadge status={row.original.status === "active" ? "success" : "danger"}>
-                    {row.original.status === "active" ? "Online" : "Offline"}
-                </StatusBadge>
-            ),
+            cell: ({ row }) => {
+                const st = getStatusUi(row.original.status);
+                return <StatusBadge status={st.badge}>{st.label}</StatusBadge>;
+            },
         },
+
         {
             accessorKey: "version",
             header: ({ column }) => {
@@ -343,6 +353,7 @@ export default function ClustersPage() {
                 </span>
             ),
         },
+
         {
             id: "actions",
             header: () => (
